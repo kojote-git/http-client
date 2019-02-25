@@ -66,7 +66,7 @@ class HttpRequestHandler implements Runnable {
 
 	private HttpRequestLine readRequestLine(String line) {
 		Pattern methodPattern = Pattern.compile("GET|POST|PUT|DELETE|OPTIONS|HEAD|PATCH]");
-		Pattern pathPattern = Pattern.compile("/|((/[a-zA-Z0-9%_]+)+/?)");
+		Pattern pathPattern = Pattern.compile("((/[a-zA-Z0-9%_]+)+/?)|/");
 		Matcher methodMatcher = methodPattern.matcher(line);
 		Matcher pathMatcher = pathPattern.matcher(line);
 		if (!methodMatcher.find())
@@ -85,22 +85,26 @@ class HttpRequestHandler implements Runnable {
 			line = reader.readLine();
 			if (line == null || line.equals(CRLF))
 				break;
+			if (line.isEmpty())
+				break;
 			String[] header = line.split(":");
 			String name = header[0];
 			String value = header.length == 1 ? "" : header[1];
-			headers.add(HttpHeader.of(name, value));
+			try {
+				headers.add(HttpHeader.of(name, value));
+			} catch (IllegalArgumentException e) {
+				throw new MalformedRequestException();
+			}
 		}
 		return headers;
 	}
 
 	private String readBody(BufferedReader reader) throws IOException {
-		String line;
 		StringBuilder body = new StringBuilder();
-		while (true) {
-			line = reader.readLine();
-			if (line == null)
-				break;
-			body.append(line).append("\n");
+		char[] buff = new char[4096];
+		int read;
+		while (reader.ready() && (read = reader.read(buff)) > 0) {
+			body.append(buff, 0, read);
 		}
 		return body.toString();
 	}
@@ -112,14 +116,13 @@ class HttpRequestHandler implements Runnable {
 		writeStatusLine(response, out);
 		writeHeaders(response, out);
 		writeEmptyLine(out);
-		out.flush();
 		out.write(response.getBody());
 		out.flush();
 	}
 
 	private void writeStatusLine(HttpMockResponse response, BufferedWriter out) throws IOException {
 		out.write("HTTP/1.1 ");
-		out.write(response.getStatusCode());
+		out.write("" + response.getStatusCode());
 		out.write(" ");
 		out.write(response.getReasonPhrase());
 		out.write(CRLF);
@@ -132,7 +135,7 @@ class HttpRequestHandler implements Runnable {
 		}
 	}
 
-	public void writeEmptyLine(BufferedWriter out) throws IOException {
+	private void writeEmptyLine(BufferedWriter out) throws IOException {
 		out.write(CRLF);
 	}
 
@@ -140,7 +143,7 @@ class HttpRequestHandler implements Runnable {
 		private HttpMethod method;
 		private String path;
 
-		public HttpRequestLine(HttpMethod method, String path) {
+		HttpRequestLine(HttpMethod method, String path) {
 			this.method = method;
 			this.path = path;
 		}

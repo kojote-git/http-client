@@ -12,7 +12,10 @@ public class HttpMockRequest {
 	public HttpMockRequest(HttpMethod method, String path, String body) {
 		this.method = method;
 		this.path = path;
-		this.body = body;
+		if (body == null)
+			this.body = "";
+		else
+			this.body = body;
 	}
 
 	@Override

@@ -14,6 +14,16 @@ public class HttpMockServer implements Runnable, Closeable {
 	private boolean running;
 	private boolean closed;
 
+	public HttpMockServer(HttpMockServerConfig config) {
+		try {
+			this.socket = new ServerSocket(0);
+			this.executorService = ForkJoinPool.commonPool();
+			this.config = config;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public HttpMockServer(int port, HttpMockServerConfig config) {
 		try {
 			this.socket = new ServerSocket(port);
@@ -44,14 +54,14 @@ public class HttpMockServer implements Runnable, Closeable {
 
 	@Override
 	public void run() {
-		if (closed)
-			return;
 		running = true;
 		while (running) {
 			try {
-				executorService.execute(new HttpRequestHandler(socket.accept(), config));
+				if (!socket.isClosed()) {
+					executorService.execute(new HttpRequestHandler(socket.accept(), config));
+				}
 			} catch (Exception e) {
-
+//				e.printStackTrace();
 			}
 		}
 	}
