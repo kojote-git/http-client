@@ -16,4 +16,9 @@ public final class BytesRequestBody implements RequestBody {
 	public InputStream getInputStream() {
 		return new ByteArrayInputStream(bytes);
 	}
+
+	@Override
+	public long getContentLength() {
+		return bytes.length;
+	}
 }

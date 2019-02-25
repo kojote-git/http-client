@@ -7,6 +7,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class HttpHeader implements Serializable {
 	private HttpHeaderName name;
 	private HttpHeaderValue value;
+	private String stringRepresentation;
 
 	private HttpHeader(HttpHeaderName name, HttpHeaderValue value) {
 		this.name = name;
@@ -37,6 +38,13 @@ public final class HttpHeader implements Serializable {
 	@Override
 	public int hashCode() {
 		return 31 * name.hashCode() + value.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		if (stringRepresentation != null)
+			return stringRepresentation;
+		return stringRepresentation = getName().get() + ": " + getValue().get();
 	}
 
 	public HttpHeaderName getName() {

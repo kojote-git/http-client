@@ -4,16 +4,22 @@ import com.jkojote.http.RequestBody;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public final class StringRequestBody implements RequestBody {
-	private String string;
+	private byte[] utf8bytes;
 
 	public StringRequestBody(String str) {
-		this.string = str;
+		this.utf8bytes = str.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
 	public InputStream getInputStream() {
-		return new ByteArrayInputStream(string.getBytes());
+		return new ByteArrayInputStream(utf8bytes);
+	}
+
+	@Override
+	public long getContentLength() {
+		return utf8bytes.length;
 	}
 }

@@ -6,19 +6,12 @@ import com.jkojote.http.bodies.StringRequestBody;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.TreeMap;
 
-public class HttpPOST implements HttpRequestWithBody {
+public class HttpPOST extends AbstractHttpRequest implements HttpRequestWithBody {
 	private RequestBody requestBody;
-	private Map<HttpHeaderName, HttpHeader> headers;
-	private String requestLine;
-	private URI uri;
 
 	private HttpPOST(URI uri) {
-		this.uri = uri;
-		this.headers = new TreeMap<>();
-		this.requestLine = "POST /" + uri.getPath() + " HTTP/1.1";
+		super(uri, HttpMethod.POST);
 	}
 
 	public static HttpPOST create(String uri) throws URISyntaxException {
@@ -34,34 +27,13 @@ public class HttpPOST implements HttpRequestWithBody {
 		return requestBody.getInputStream();
 	}
 
-	@Override
-	public String getRequestLine() {
-		return requestLine;
-	}
-
-	@Override
-	public HttpMethod getMethod() {
-		return HttpMethod.POST;
-	}
-
-	@Override
-	public URI getUri() {
-		return uri;
-	}
-
-	@Override
-	public Iterable<HttpHeader> getRequestHeaders() {
-		return headers.values();
-	}
-
 	public HttpPOST addHeader(String name, String value) {
-		HttpHeaderName headerName = HttpHeaderName.of(name);
-		headers.put(headerName, HttpHeader.of(headerName, HttpHeaderValue.of(value)));
+		putHeader(name, value);
 		return this;
 	}
 
 	public HttpPOST addHeader(HttpHeader header) {
-		headers.put(header.getName(), header);
+		putHeader(header);
 		return this;
 	}
 
@@ -74,5 +46,4 @@ public class HttpPOST implements HttpRequestWithBody {
 		requestBody = new StringRequestBody(string);
 		return this;
 	}
-
 }
