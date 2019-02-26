@@ -12,7 +12,6 @@ public class HttpMockServer implements Runnable, Closeable {
 	private ExecutorService executorService;
 	private HttpMockServerConfig config;
 	private boolean running;
-	private boolean closed;
 
 	public HttpMockServer(HttpMockServerConfig config) {
 		try {
@@ -49,7 +48,6 @@ public class HttpMockServer implements Runnable, Closeable {
 	@Override
 	public void close() throws IOException {
 		socket.close();
-		closed = true;
 	}
 
 	@Override

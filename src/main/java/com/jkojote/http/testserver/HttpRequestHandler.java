@@ -1,6 +1,7 @@
 package com.jkojote.http.testserver;
 
 import com.jkojote.http.HttpHeader;
+import com.jkojote.http.HttpHeaderName;
 import com.jkojote.http.HttpMethod;
 
 import java.io.*;
@@ -37,15 +38,15 @@ class HttpRequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			 BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+		try (InputStream in = socket.getInputStream();
+			 OutputStream out = socket.getOutputStream()) {
 			handleRequest(in, out);
 		} catch (IOException e) {
 
 		}
 	}
 
-	private void handleRequest(BufferedReader in, BufferedWriter out) throws IOException {
+	private void handleRequest(InputStream in, OutputStream out) throws IOException {
 		try {
 			HttpMockRequest request = readRequest(in);
 			HttpMockResponse response = config.getResponse(request);
@@ -57,10 +58,14 @@ class HttpRequestHandler implements Runnable {
 		}
 	}
 
-	private HttpMockRequest readRequest(BufferedReader reader) throws IOException {
-		HttpRequestLine requestLine = readRequestLine(reader.readLine());
-		readHeaders(reader);
-		String body = readBody(reader);
+	private HttpMockRequest readRequest(InputStream in) throws IOException {
+		BufferedReader reader; HttpRequestLine requestLine;
+		long contentLength; String body;
+
+		reader = new BufferedReader(new InputStreamReader(in));
+		requestLine = readRequestLine(reader.readLine());
+		contentLength = getContentLength(readHeaders(reader));
+		body = readBody(in, contentLength);
 		return new HttpMockRequest(requestLine.method, requestLine.path, body);
 	}
 
@@ -83,9 +88,7 @@ class HttpRequestHandler implements Runnable {
 		Collection<HttpHeader> headers = new ArrayList<>();
 		while (true) {
 			line = reader.readLine();
-			if (line == null || line.equals(CRLF))
-				break;
-			if (line.isEmpty())
+			if (line == null || line.isEmpty())
 				break;
 			String[] header = line.split(":");
 			String name = header[0];
@@ -99,25 +102,47 @@ class HttpRequestHandler implements Runnable {
 		return headers;
 	}
 
-	private String readBody(BufferedReader reader) throws IOException {
-		StringBuilder body = new StringBuilder();
-		char[] buff = new char[4096];
-		int read;
-		while (reader.ready() && (read = reader.read(buff)) > 0) {
-			body.append(buff, 0, read);
+	private long getContentLength(Collection<HttpHeader> headers) {
+		HttpHeaderName contentLength = HttpHeaderName.of("Content-Length");
+		for (HttpHeader header : headers) {
+			if (header.getName().equals(contentLength)) {
+				return tryParseContentLength(header.getValue().get());
+			}
 		}
-		return body.toString();
+		return -1;
 	}
 
-	private void writeResponse(HttpMockResponse response, BufferedWriter out) throws IOException {
+	private long tryParseContentLength(String value) {
+		try {
+			return Long.parseLong(value.trim());
+		} catch (NumberFormatException e) {
+			throw new MalformedRequestException();
+		}
+	}
+
+	private String readBody(InputStream in, long length) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		byte[] buffer = new byte[4096];
+		int read;
+		long totalRead = 0;
+		while (totalRead < length) {
+			read = in.read(buffer);
+			out.write(buffer, 0, read);
+			totalRead += read;
+		}
+		return out.toString();
+	}
+
+	private void writeResponse(HttpMockResponse response, OutputStream out) throws IOException {
 		if (response == null) {
 			throw new NotFoundException();
 		}
-		writeStatusLine(response, out);
-		writeHeaders(response, out);
-		writeEmptyLine(out);
-		out.write(response.getBody());
-		out.flush();
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+		writeStatusLine(response, writer);
+		writeHeaders(response, writer);
+		writeEmptyLine(writer);
+		writer.write(response.getBody());
+		writer.flush();
 	}
 
 	private void writeStatusLine(HttpMockResponse response, BufferedWriter out) throws IOException {

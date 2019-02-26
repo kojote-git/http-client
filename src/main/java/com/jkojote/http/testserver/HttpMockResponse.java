@@ -16,6 +16,7 @@ public class HttpMockResponse {
 		this.statusCode = statusCode;
 		this.body = body;
 		this.reasonPhrase = reasonPhrase;
+		headers.add(HttpHeader.of("Content-Length", body.getBytes().length + ""));
 	}
 
 	public int getStatusCode() {

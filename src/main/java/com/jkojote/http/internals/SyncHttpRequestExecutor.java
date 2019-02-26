@@ -95,6 +95,7 @@ public class SyncHttpRequestExecutor implements HttpRequestExecutor {
 		while ((read = in.read(buffer)) > 0) {
 			out.write(buffer, 0, read);
 		}
+		out.flush();
 	}
 
 	private byte[] readResponseAsBytes(HttpURLConnection con) throws IOException {
