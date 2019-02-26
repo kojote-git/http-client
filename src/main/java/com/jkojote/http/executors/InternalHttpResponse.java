@@ -1,4 +1,4 @@
-package com.jkojote.http.internals;
+package com.jkojote.http.executors;
 
 import com.jkojote.http.HttpHeader;
 import com.jkojote.http.HttpResponse;

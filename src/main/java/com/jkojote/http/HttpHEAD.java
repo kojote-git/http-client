@@ -31,5 +31,4 @@ public class HttpHEAD extends AbstractHttpRequest {
 		putHeader(header);
 		return this;
 	}
-
 }

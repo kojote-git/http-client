@@ -1,4 +1,4 @@
-package com.jkojote.http.internals;
+package com.jkojote.http.executors;
 
 import com.jkojote.http.*;
 
@@ -41,7 +41,7 @@ public class SyncHttpRequestExecutor implements HttpRequestExecutor {
 	throws IOException {
 		connection.setDoOutput(true);
 		try (OutputStream out = connection.getOutputStream();
-			InputStream in = request.getInputStream()) {
+			InputStream in = request.getRequestBody().getInputStream()) {
 			transfer(in, out);
 			return readResponse(connection);
 		}

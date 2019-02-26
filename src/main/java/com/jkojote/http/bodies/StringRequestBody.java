@@ -6,10 +6,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class StringRequestBody implements RequestBody {
 	private byte[] utf8bytes;
 
 	public StringRequestBody(String str) {
+		checkNotNull(str);
 		this.utf8bytes = str.getBytes(StandardCharsets.UTF_8);
 	}
 

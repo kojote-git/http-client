@@ -1,6 +1,6 @@
 package com.jkojote.http;
 
-import com.jkojote.http.internals.SyncHttpRequestExecutor;
+import com.jkojote.http.executors.SyncHttpRequestExecutor;
 import com.jkojote.http.testserver.HttpMockServer;
 import com.jkojote.http.testserver.HttpMockServerConfig;
 import com.jkojote.http.utils.StringResponseReader;

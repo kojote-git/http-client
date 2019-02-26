@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class HttpGET extends AbstractHttpRequest {
+
 	private HttpGET(URI uri) {
 		super(uri, HttpMethod.GET);
 	}

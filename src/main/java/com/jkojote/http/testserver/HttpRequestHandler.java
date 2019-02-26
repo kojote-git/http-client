@@ -59,17 +59,17 @@ class HttpRequestHandler implements Runnable {
 	}
 
 	private HttpMockRequest readRequest(InputStream in) throws IOException {
-		BufferedReader reader; HttpRequestLine requestLine;
+		HttpRequestLine requestLine;
 		long contentLength; String body;
 
-		reader = new BufferedReader(new InputStreamReader(in));
-		requestLine = readRequestLine(reader.readLine());
-		contentLength = getContentLength(readHeaders(reader));
+		requestLine = readRequestLine(in);
+		contentLength = getContentLength(readHeaders(in));
 		body = readBody(in, contentLength);
 		return new HttpMockRequest(requestLine.method, requestLine.path, body);
 	}
 
-	private HttpRequestLine readRequestLine(String line) {
+	private HttpRequestLine readRequestLine(InputStream in) throws IOException {
+		String line = readLine(in);
 		Pattern methodPattern = Pattern.compile("GET|POST|PUT|DELETE|OPTIONS|HEAD|PATCH]");
 		Pattern pathPattern = Pattern.compile("((/[a-zA-Z0-9%_]+)+/?)|/");
 		Matcher methodMatcher = methodPattern.matcher(line);
@@ -83,12 +83,12 @@ class HttpRequestHandler implements Runnable {
 		return new HttpRequestLine(Enum.valueOf(HttpMethod.class, method), path);
 	}
 
-	private Collection<HttpHeader> readHeaders(BufferedReader reader) throws IOException {
+	private Collection<HttpHeader> readHeaders(InputStream in) throws IOException {
 		String line;
 		Collection<HttpHeader> headers = new ArrayList<>();
 		while (true) {
-			line = reader.readLine();
-			if (line == null || line.isEmpty())
+			line = readLine(in);
+			if (line.isEmpty())
 				break;
 			String[] header = line.split(":");
 			String name = header[0];
@@ -171,6 +171,26 @@ class HttpRequestHandler implements Runnable {
 		HttpRequestLine(HttpMethod method, String path) {
 			this.method = method;
 			this.path = path;
+		}
+	}
+
+	// can't figure out another solution but this
+	private String readLine(InputStream in) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		int c;
+		while ((c = in.read()) > 0) {
+			if (c == '\n') {
+				deleteCarriageReturn(sb);
+				return sb.toString();
+			}
+			sb.append((char) c);
+		}
+		return sb.toString();
+	}
+
+	private void deleteCarriageReturn(StringBuilder sb) {
+		if (sb.charAt(sb.length() - 1) == '\r') {
+			sb.deleteCharAt(sb.length() - 1);
 		}
 	}
 }
