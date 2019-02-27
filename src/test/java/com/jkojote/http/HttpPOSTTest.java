@@ -1,6 +1,6 @@
 package com.jkojote.http;
 
-import com.jkojote.http.executors.SyncHttpRequestExecutor;
+import com.jkojote.http.executors.DefaultHttpRequestExecutor;
 import com.jkojote.http.testserver.HttpMockServer;
 import com.jkojote.http.testserver.HttpMockServerConfig;
 import com.jkojote.http.utils.StringResponseReader;
@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.jkojote.http.testserver.HttpMockRequest.HttpMockRequestBuilder;
@@ -16,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 
 public class HttpPOSTTest {
 	private HttpMockServer server;
-	private HttpRequestExecutor executor = new SyncHttpRequestExecutor();
+	private HttpRequestExecutor executor = new DefaultHttpRequestExecutor();
 
 	@Before
 	public void setUpServer() {
@@ -62,5 +63,17 @@ public class HttpPOSTTest {
 		HttpResponse response = executor.execute(request);
 
 		assertEquals(404, response.getStatusCode());
+	}
+
+	@Test
+	public void sendAsyncPostRequest_RespondOk() throws Exception {
+		String uri = "http://localhost:" + server.getLocalPort();
+		HttpRequest request  = HttpPOST.create(uri + "/")
+				.setRequestBody("Hello");
+		CompletableFuture<Integer> statusCode = new CompletableFuture<>();
+		executor.executeAsync(request, response -> {
+			statusCode.complete(response.getStatusCode());
+		});
+		assertEquals(Integer.valueOf(200), statusCode.get());
 	}
 }

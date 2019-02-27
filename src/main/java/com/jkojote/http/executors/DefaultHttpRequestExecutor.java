@@ -8,19 +8,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SyncHttpRequestExecutor implements HttpRequestExecutor {
+public class DefaultHttpRequestExecutor implements HttpRequestExecutor {
+	private ExecutorService executorService;
+
+	public DefaultHttpRequestExecutor() {
+		executorService = Executors.newCachedThreadPool();
+	}
 
 	@Override
-	public HttpResponse execute(HttpRequest request) {
+	public HttpResponse execute(HttpRequest request) throws RequestExecutionException {
 		try {
 			HttpURLConnection connection = openConnection(request);
 			return execute(request, connection);
 		} catch (IOException e) {
 			throw new RequestExecutionException(e);
 		}
+	}
+
+	@Override
+	public Future<HttpResponse> executeAsync(HttpRequest request) throws RequestExecutionException {
+		return executorService.submit(() -> execute(request));
+	}
+
+	@Override
+	public void executeAsync(HttpRequest request, Consumer<HttpResponse> onCompletion) throws RequestExecutionException {
+		executorService.execute(() -> onCompletion.accept(execute(request)));
 	}
 
 	private HttpURLConnection openConnection(HttpRequest request) throws IOException {
