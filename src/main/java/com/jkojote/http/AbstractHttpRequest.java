@@ -1,11 +1,13 @@
 package com.jkojote.http;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
 
-public abstract class AbstractHttpRequest implements HttpRequest {
-	private Map<HttpHeaderName, HttpHeader> headers;
+public abstract class AbstractHttpRequest<T extends AbstractHttpRequest<T>> implements HttpRequest {
+	private Map<HttpHeaderName, HttpHeaderValue> headers;
 	private URI uri;
 	private HttpMethod method;
 	private String requestLine;
@@ -14,7 +16,7 @@ public abstract class AbstractHttpRequest implements HttpRequest {
 		this.method = method;
 		this.uri = uri;
 		this.requestLine = method.toString() + " /" + uri.getPath() + "HTTP/1.1";
-		this.headers = new TreeMap<>();
+		this.headers = new HashMap<>();
 	}
 
 	@Override
@@ -34,19 +36,24 @@ public abstract class AbstractHttpRequest implements HttpRequest {
 
 	@Override
 	public Iterable<HttpHeader> getRequestHeaders() {
-		return headers.values();
+		return headers.entrySet().stream()
+			.map(e -> HttpHeader.of(e.getKey(), e.getValue()))
+			.collect(Collectors.toCollection(LinkedList::new));
 	}
 
-	protected void putHeader(String name, String value) {
+	public T addHeader(String name, String value) {
 		HttpHeaderName headerName = HttpHeaderName.of(name);
-		headers.put(headerName, HttpHeader.of(headerName, HttpHeaderValue.of(value)));
+		headers.put(headerName, HttpHeaderValue.of(value));
+		return (T) this;
 	}
 
-	protected void putHeader(HttpHeader header) {
-		headers.put(header.getName(), header);
+	public T addHeader(HttpHeader header) {
+		headers.put(header.getName(), header.getValue());
+		return (T) this;
 	}
 
-	protected void putHeader(HttpHeaderName name, HttpHeaderValue value) {
-		headers.put(name, HttpHeader.of(name, value));
+	public T addHeader(HttpHeaderName name, HttpHeaderValue value) {
+		headers.put(name, value);
+		return (T) this;
 	}
 }

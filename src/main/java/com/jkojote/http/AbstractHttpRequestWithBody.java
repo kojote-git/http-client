@@ -1,11 +1,14 @@
 package com.jkojote.http;
 
+import com.jkojote.http.bodies.BytesRequestBody;
+import com.jkojote.http.bodies.StringRequestBody;
+
 import java.net.URI;
 
 import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
-public abstract class AbstractHttpRequestWithBody
-		extends AbstractHttpRequest implements HttpRequestWithBody {
+public abstract class AbstractHttpRequestWithBody<T extends AbstractHttpRequestWithBody<T>>
+		extends AbstractHttpRequest<T> implements HttpRequestWithBody {
 	private RequestBody requestBody = RequestBody.EMPTY;
 
 	protected AbstractHttpRequestWithBody(URI uri, HttpMethod method) {
@@ -17,9 +20,20 @@ public abstract class AbstractHttpRequestWithBody
 		return requestBody;
 	}
 
-	protected void setInternalRequestBody(RequestBody requestBody) {
-		checkNotNull(requestBody);
-		this.requestBody = requestBody;
-		putHeader("Content-Length", "" + requestBody.getContentLength());
+	public T setRequestBody(RequestBody body) {
+		checkNotNull(body);
+		requestBody = body;
+		addHeader("Content-Length", "" + requestBody.getContentLength());
+		return (T) this;
+	}
+
+	public T setRequestBody(byte[] bytes) {
+		setRequestBody(new BytesRequestBody(bytes));
+		return (T) this;
+	}
+
+	public T setRequestBody(String string) {
+		setRequestBody(new StringRequestBody(string));
+		return (T) this;
 	}
 }
