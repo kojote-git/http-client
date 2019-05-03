@@ -3,7 +3,7 @@ package com.jkojote.http;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 class DefaultHttpHeaderValueValidator implements HttpHeaderValueValidator {
 	private static final Pattern CONTROL_CHARACTERS_WITH_TAB_EXCLUDED = Pattern.compile(

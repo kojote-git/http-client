@@ -2,7 +2,7 @@ package com.jkojote.http;
 
 import java.net.URI;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 public abstract class AbstractHttpRequestWithBody
 		extends AbstractHttpRequest implements HttpRequestWithBody {

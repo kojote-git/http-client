@@ -3,8 +3,8 @@ package com.jkojote.http;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkArgument;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 class DefaultHttpHeaderNameValidator implements HttpHeaderNameValidator {
 	private static final Pattern CONTROL_CHARACTERS = Pattern.compile("[\\u0000-\\u001F]|\\u007F");

@@ -6,7 +6,7 @@ import com.jkojote.http.bodies.StringRequestBody;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 public class HttpPUT extends AbstractHttpRequestWithBody{
 

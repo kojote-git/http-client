@@ -5,7 +5,7 @@ import com.jkojote.http.RequestBody;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 public final class BytesRequestBody implements RequestBody {
 	private byte[] bytes;

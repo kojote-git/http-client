@@ -2,7 +2,7 @@ package com.jkojote.http;
 
 import java.io.Serializable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.jkojote.http.utils.Preconditions.checkNotNull;
 
 public final class HttpHeader implements Serializable {
 	private HttpHeaderName name;
